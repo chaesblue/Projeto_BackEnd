@@ -1,38 +1,55 @@
 <?php
 // Conexão com o banco
-include ('conexao.php');
+include('conexao.php'); // deve definir $conn
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+    // Recebendo dados do formulário (sempre verificar/filtrar em produção)
+    $nome          = $_POST['nome'] ?? '';
+    $sobrenome     = $_POST['sobrenome'] ?? '';
+    $DataNascimento= $_POST['dataNascimento'] ?? null;
+    $NomeMaterno   = $_POST['nomeMaterno'] ?? '';
+    $Cpf           = $_POST['cpf'] ?? '';
+    $sexo          = $_POST['sexo'] ?? '';
+    $cep           = $_POST['cep'] ?? '';
+    $endereco      = $_POST['endereco'] ?? '';
+    $bairro        = $_POST['bairro'] ?? '';
+    $estado        = $_POST['estado'] ?? '';
+    $cidade        = $_POST['cidade'] ?? '';
+    $email         = $_POST['email'] ?? '';
+    $senha         = $_POST['senha'] ?? '';
+    $telefone      = $_POST['telefoneCelular'] ?? '';
 
-    // Recebendo dados do formulário
-    $nome = $_POST['nome'];
-    $sobrenome = $_POST['sobrenome'];
-    $DataNascimento = $_POST['dataNascimento'];
-    $NomeMaterno = $_POST['nomeMaterno'];
-    $Cpf = $_POST['cpf'];
-    $sexo = $_POST['sexo'];
-    $cep = $_POST['cep'];
-    $endereco = $_POST['endereco'];
-    $bairro = $_POST['bairro'];
-    $estado = $_POST['estado'];
-    $cidade = $_POST['cidade'];
-    $email = $_POST['email'];
-    $senha = $_POST['senha'];
-    $telefone = $_POST['telefoneCelular'];
-
-    // Criptografa a senha antes de enviar para o banco
+    // Criptografa a senha
     $hash = password_hash($senha, PASSWORD_DEFAULT);
-    //Validação para saber se ja existe o email e o cpf existente dentro do banco
+    
+    // 1) Verificar CPF
+    $erro = $_GET ['alertaCpf'] ?? null;
+    $stmt = $conexao->prepare("SELECT 1 FROM usuarios WHERE cpf = ? LIMIT 1");
+    $stmt->bind_param("s", $Cpf);
+    $stmt->execute();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
+        // CPF duplicado
+        $stmt->close();
+        // aqui você pode redirecionar com querystring de erro ou mostrar mensagem
+        header('Location: cadastro.php?erro=cpf_duplicado');
+        exit;
+    }
+    $stmt->close();
 
-    // Conexão com o banco
-    include 'conexao.php'; 
-
-    // Prepara o SQL para evitar SQL Injection
-    $sql = "INSERT INTO usuarios 
+    // 3) Inserir (se passou nas verificações)
+    $sql = "INSERT INTO usuarios
     (cpf, nome, sobrenome, nomeMaterno, sexo, endereco, bairro, estado, cep, cidade, email, senha, telefoneCelular, DataNascimento) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    $stmt = $conn->prepare($sql);
+    $stmt = $conexao->prepare($sql);
+    if (!$stmt) {
+        // Erro na preparação do statement
+        header('Location: erroGeral.php');
+        exit;
+    }
+
     $stmt->bind_param(
         "ssssssssssssss",
         $Cpf,
@@ -52,12 +69,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($stmt->execute()) {
+        $stmt->close();
+        $conexao->close();
         header('Location: login.php');
         exit;
-    }else{
+    } else {
+        $stmt->close();
+        $conexao->close();
         header('Location: erroGeral.php');
         exit;
     }
-    $stmt->close();
-    $conn->close();
+    }   
+    catch (mysqli_sql_exception $e) {
+     // Se der erro em qualquer parte, ele vem parar aqui:
+        error_log("Erro SQL: " . $e->getMessage());
+        header('Location: erroGeral.php');
+         exit;
+    }
 }

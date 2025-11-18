@@ -1,137 +1,205 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.querySelector("form");
-  const mensagensErro = document.getElementById('mensagensErro');
+// Executa tudo apenas após o DOM estar completamente carregado
+$(document).ready(function() {
+  const $form = $("#formCadastro");
+  const $mensagensErro = $("#mensagensErro");
 
-  //API DE CEP 
-  document.getElementById('cep').addEventListener('focusout', function () {
-    const raw = this.value.replace(/\D/g, '-');
-    if (raw.length === 9) {
-      fetch('https://viacep.com.br/ws/' + raw + '/json/')
-        .then(r => r.json())
-        .then(data => {
-          if (!data.erro) {
-            document.getElementById('rua').value = data.logradouro || '';
-            document.getElementById('bairro').value = data.bairro || '';
-            document.getElementById('cidade').value = data.localidade || '';
-            document.getElementById('uf').value = data.uf || '';
-          }
-        });
+
+  // --------------------------------------------------------------------
+  // 🔧 Função auxiliar: mostra mensagem de erro abaixo do campo específico
+  // --------------------------------------------------------------------
+  function mostrarErroCampo(campoId, mensagem) {
+    const $el = $(`#erro${campoId}`);
+    if ($el.length) {
+      $el.text(mensagem).addClass("fade-in-erromsg");
+    }
+
+    // Tabela de correspondência entre IDs de campo e os elementos reais
+    const lookup = {
+      Nome: "idNome", Sobrenome: "idSobrenome", NomeMaterno: "idnomeMaterno",
+      Cpf: "idCpf", Cep: "cep", Endereco: "rua", Bairro: "bairro",
+      Estado: "uf", Cidade: "cidade", Email: "email", Telefone: "telefone",
+      Senha: "senha", ConfirmaSenha: "confirmaSenha"
     };
+
+    const idCampo = lookup[campoId];
+    const $input = idCampo ? $(`#${idCampo}`) : $();
+
+    // Adiciona uma leve piscada no campo com erro
+    if ($input.length) {
+      $input.addClass("campo-erro");
+      setTimeout(() => $input.removeClass("campo-erro"), 4000);
+    }
+  }
+
+  // --------------------------------------------------------------------
+  // 🧹 Limpa mensagens de erro antes de nova validação
+  // --------------------------------------------------------------------
+  function limparErrosCampos() {
+    $(".erro-msg").text("").removeClass("fade-in-erromsg");
+    $mensagensErro.addClass("d-none");
+  }
+
+  // --------------------------------------------------------------------
+  // 🔤 Expressão regular para nomes com acentos (3 a 30 caracteres)
+  // --------------------------------------------------------------------
+  const regexNome = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]{3,30}$/;
+
+  // --------------------------------------------------------------------
+  // 📦 ViaCEP – preenche automaticamente endereço ao sair do campo CEP
+  // --------------------------------------------------------------------
+  $("#cep").on("focusout", function () {
+    const raw = $(this).val().replace(/\D/g, "");
+    if (raw.length === 8) {
+      $.getJSON(`https://viacep.com.br/ws/${raw}/json/`, function (data) {
+        if (!data.erro) {
+          $("#rua").val(data.logradouro || "");
+          $("#bairro").val(data.bairro || "");
+          $("#cidade").val(data.localidade || "");
+          $("#uf").val(data.uf || "");
+        }
+      });
+    }
   });
 
-  // Máscaras de entrada
-  document.getElementById('idCpf').addEventListener('input', function (e) {
-    e.target.value = e.target.value.replace(/\D/g, '') // Remove caracteres não numéricos
-      .replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'); // Formato do CPF
+  // --------------------------------------------------------------------
+  // 🧱 Máscaras dos campos CPF, CEP e Telefone
+  // --------------------------------------------------------------------
+  $("#idCpf").on("input", function () {
+    let mascara = $(this).val().replace(/\D/g, "");
+    mascara = mascara.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+    $(this).val(mascara);
   });
 
-  document.getElementById('cep').addEventListener('input', function (e) {
-    e.target.value = e.target.value.replace(/\D/g, '') // Remove caracteres não numéricos
-      .replace(/(\d{5})(\d{3})/, '$1-$2'); // Formato do CEP
+  $("#cep").on("input", function () {
+    let mascara = $(this).val().replace(/\D/g, "");
+    mascara = mascara.replace(/(\d{5})(\d{3})/, "$1-$2");
+    $(this).val(mascara);
   });
 
-  document.getElementById('telefone').addEventListener('input', function (e) {
-    e.target.value = e.target.value.replace(/\D/g, '') // Remove caracteres não numéricos
-      .replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3'); // Formato de telefone
+  $("#telefone").on("input", function () {
+    let mascara = $(this).val().replace(/\D/g, "");
+    mascara = mascara.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+    $(this).val(mascara);
   });
 
-  // exibição de senha
-  function exibirSenha() {
-    var inputSenha = document.getElementById('senha');
-    var btnshowPass = document.getElementById('btn-exibirSenha');
+  // --------------------------------------------------------------------
+  // 👁️ Alternância de exibição de senha (olhinho)
+  // --------------------------------------------------------------------
+  function toggleEye(btnId, inputId) {
+    const $btn = $(`#${btnId}`);
+    const $input = $(`#${inputId}`);
+    if (!$btn.length || !$input.length) return;
 
-    if (inputSenha.type === 'password') {
-      inputSenha.setAttribute('type', 'text');
-      btnshowPass.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
-    }
-    else {
-      inputSenha.setAttribute('type', 'password');
-      btnshowPass.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
-    }
-  };
-  var btnshowPass = document.getElementById('btn-exibirSenha');
-  btnshowPass.addEventListener('click', exibirSenha);
+    $btn.on("click", function () {
+      if ($input.attr("type") === "password") {
+        $input.attr("type", "text");
+        $btn.removeClass("bi-eye-fill").addClass("bi-eye-slash-fill");
+      } else {
+        $input.attr("type", "password");
+        $btn.removeClass("bi-eye-slash-fill").addClass("bi-eye-fill");
+      }
+      $input.focus();
+    });
+  }
 
-  // exibição do confirmar senha
-  function apresentarSenha() {
-    var inputSenha = document.getElementById('confirmaSenha');
-    var btnApresentarSenha = document.getElementById('btn-aparecerSenha');
+  toggleEye("btn-exibirSenha", "senha");
+  toggleEye("btn-aparecerSenha", "confirmaSenha");
 
-    if (inputSenha.type === 'password') {
-      inputSenha.setAttribute('type', 'text');
-      btnApresentarSenha.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
-    }
-    else {
-      inputSenha.setAttribute('type', 'password');
-      btnApresentarSenha.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
-    }
-  };
-  var btnApresentarSenha = document.getElementById('btn-aparecerSenha');
-  btnApresentarSenha.addEventListener('click', apresentarSenha);
+  // --------------------------------------------------------------------
+  // ✅ Validação geral ao enviar o formulário
+  // --------------------------------------------------------------------
+  $form.on("submit", function (e) {
+    e.preventDefault();
+    limparErrosCampos();
+    let temErro = false;
 
-  // Função para validar o formulário
-  form.addEventListener('submit', function (event) {
-    event.preventDefault();
-    let errors = [];
+    const campos = {
+      Nome: $("#idNome").val().trim(),
+      Sobrenome: $("#idSobrenome").val().trim(),
+      NomeMaterno: $("#idnomeMaterno").val().trim(),
+      Cpf: $("#idCpf").val().trim(),
+      Cep: $("#cep").val().trim(),
+      Endereco: $("#rua").val().trim(),
+      Bairro: $("#bairro").val().trim(),
+      Cidade: $("#cidade").val().trim(),
+      Estado: $("#uf").val().trim(),
+      Telefone: $("#telefone").val().trim(),
+      Email: $("#email").val().trim(),
+      Senha: $("#senha").val(),
+      ConfirmaSenha: $("#confirmaSenha").val()
+    };
 
-    // Validação de nome (máximo 100 caracteres alfabéticos)
-   /* const nome = document.getElementById('idNome').value;
-    if (!/^[A-Za-z\s]{1,100}$/.test(nome)) {
-      errors.push("O nome deve ter no máximo 100 caracteres alfabéticos.");
-    }*/
+    // Validação de Nome, Sobrenome e Nome Materno
+    $.each(["Nome", "Sobrenome", "NomeMaterno"], function (_, campo) {
+      if (campos[campo] === "") {
+        mostrarErroCampo(campo, `Preencha o campo ${campo.toLowerCase()}.`);
+        temErro = true;
+      } else if (!regexNome.test(campos[campo])) {
+        mostrarErroCampo(campo, `${campo} deve ter entre 3 e 30 caracteres e conter apenas letras.`);
+        temErro = true;
+      }
+    });
 
-    // Validação de sobrenome (máximo 100 caracteres alfabéticos)
-    /*const sobrenome = document.getElementById('idSobrenome').value;
-    if (!/^[A-Za-z\s]{1,100}$/.test(sobrenome)) {
-      errors.push("O sobrenome deve ter no máximo 100 caracteres alfabéticos.");
-    }*/
-
-    //Validação de nome Materno (máximo 100 caracteres alfabéticos)
-    //const nomeMaterno = document.getElementById('idnomeMaterno').value;
-    //if (!/^[A-Za-z\s]{1,100}$/.test(nomeMaterno)) {
-      //errors.push("O nome materno deve ter no máximo 100 caracteres alfabéticos.");
-    //}
-
-
-    // Validação de senha (mínimo 8 caracteres)
-    const senha = document.getElementById('senha').value;
-    if (senha.length < 8) {
-      errors.push("A senha deve ter pelo menos 8 caracteres.");
-    }
-
-    // Validação de senha e confirmação de senha
-    const confirmaSenha = document.getElementById('confirmaSenha').value;
-    if (senha !== confirmaSenha) {
-      errors.push("A senha e a confirmação de senha devem ser iguais.");
+    // CPF
+    if (campos.Cpf === "") { mostrarErroCampo("Cpf", "Preencha o campo CPF."); temErro = true; }
+    else if (!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(campos.Cpf)) {
+      mostrarErroCampo("Cpf", "O CPF deve estar no formato 123.456.789-00.");
+      temErro = true;
     }
 
-    // Validação de CPF (formato: 123.456.789-00)
-    const cpf = document.getElementById('idCpf').value;
-    if (!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf)) {
-      errors.push("O CPF deve estar no formato 123.456.789-00.");
+    // CEP
+    if (campos.Cep === "") { mostrarErroCampo("Cep", "Preencha o campo CEP."); temErro = true; }
+    else if (!/^\d{5}-\d{3}$/.test(campos.Cep)) {
+      mostrarErroCampo("Cep", "O CEP deve estar no formato 12345-678.");
+      temErro = true;
     }
 
-    // Validação de CEP (formato: 12345-678)
-    const cep = document.getElementById('cep').value;
-    if (!/^\d{5}-\d{3}$/.test(cep)) {
-      errors.push("O CEP deve estar no formato 12345-678.");
-    }
-    //API CEP IRÁ VIR PARA CÁ APÓS A VALIDAÇÃO ---->
+    // Endereço, Bairro, Cidade, Estado
+    $.each(["Endereco", "Bairro", "Cidade", "Estado"], function (_, campo) {
+      if (campos[campo] === "") {
+        mostrarErroCampo(campo, `Preencha o campo ${campo.toLowerCase()}.`);
+        temErro = true;
+      }
+    });
 
-    // Validação de telefone (formato: (21) 99999-5555)
-    const telefone = document.getElementById('telefone').value;
-    if (!/^\(\d{2}\)\s\d{5}-\d{4}$/.test(telefone)) {
-      errors.push("O telefone deve estar no formato (21) 99999-5555.");
+    // Telefone
+    if (campos.Telefone === "") { mostrarErroCampo("Telefone", "Preencha o campo telefone."); temErro = true; }
+    else if (!/^\(\d{2}\)\s\d{5}-\d{4}$/.test(campos.Telefone)) {
+      mostrarErroCampo("Telefone", "O telefone deve estar no formato (21) 99999-5555.");
+      temErro = true;
     }
 
-    // Exibição de erros
-    if (errors.length > 0) {
-      mensagensErro.classList.remove('d-none');
-      mensagensErro.innerHTML = errors.join('<br>');
-    } else {
-      mensagensErro.classList.add('d-none');
-
-      form.submit(); // Submete o formulário se não houver erros
+    // E-mail
+    if (campos.Email === "") { mostrarErroCampo("Email", "Preencha o campo e-mail."); temErro = true; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campos.Email)) {
+      mostrarErroCampo("Email", "Informe um e-mail válido."); temErro = true;
     }
+
+    // Senhas
+    if (campos.Senha === "") { mostrarErroCampo("Senha", "Preencha o campo senha."); temErro = true; }
+    else if (campos.Senha.length < 8) {
+      mostrarErroCampo("Senha", "A senha deve ter pelo menos 8 caracteres.");
+      temErro = true;
+    }
+    if (campos.ConfirmaSenha === "") { mostrarErroCampo("ConfirmaSenha", "Confirme sua senha."); temErro = true; }
+    else if (campos.Senha !== campos.ConfirmaSenha) {
+      mostrarErroCampo("ConfirmaSenha", "As senhas devem ser iguais.");
+      temErro = true;
+    }
+
+    // Caso haja erro, mostra painel e rola até o primeiro erro
+    if (temErro) {
+      $mensagensErro.removeClass("d-none")
+        .text("Existem erros no formulário. Corrija e tente novamente.");
+      const $primeiroErro = $(".erro-msg").filter(function () { return $(this).text().trim() !== ""; }).first();
+      if ($primeiroErro.length) {
+        $("html, body").animate({ scrollTop: $primeiroErro.offset().top - 100 }, 600);
+      }
+      return;
+    }
+  
+    // Se não houver erros, submete o formulário normalmente
+    $mensagensErro.addClass("d-none");
+    $form.off("submit").submit();
   });
 });
