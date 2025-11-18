@@ -8,8 +8,9 @@ body {
     background-attachment: fixed;
     position: relative;
     background-color: var(--cor-fundo-claro);
-    transition: 0.1s, color 0.1s; 
+    transition: 0.1s, color 0.1s;
 }
+
 /* 2. Camada de Desfoque no Fundo */
 .imagem-fundo {
     position: fixed;
@@ -17,15 +18,19 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;          /* atrás de todo o conteúdo */
-    pointer-events: none;  /* não interfere em cliques */
+    z-index: -1;
+    /* atrás de todo o conteúdo */
+    pointer-events: none;
+    /* não interfere em cliques */
 }
 
 .imagem-fundo img {
     width: 100%;
     height: 100%;
-    object-fit: cover;     /* cobre todo o container sem distorcer */
-    filter: brightness(0.6); /* desfoque + escurece */
+    object-fit: cover;
+    /* cobre todo o container sem distorcer */
+    filter: brightness(0.6);
+    /* desfoque + escurece */
 }
 
 /* 3. Header e Título */
@@ -39,16 +44,18 @@ header h1 {
     font-family: 'Georgia', serif;
     font-size: 2.5rem;
     color: #fff;
-    text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
     border-bottom: 3px solid #28a745;
     display: inline-block;
 }
+
 /* 4. Conteúdo Principal */
 main.container {
     background-color: rgba(206, 206, 206, 0.336);
     padding: 2rem;
     border-radius: 0.8rem;
-    margin-bottom: 5rem; /* espaço para o footer */
+    margin-bottom: 5rem;
+    /* espaço para o footer */
 }
 
 main.container h5 {
@@ -62,6 +69,7 @@ main.container p {
     line-height: 1.6;
     color: #fff;
 }
+
 /* 5. Formulário (Bootstrap overrides) */
 .form-control {
     border-radius: 0.25rem;
@@ -80,13 +88,15 @@ main.container p {
 .btn-verde:hover {
     background-color: #218838;
 }
-div i{
+
+div i {
     font-size: 20px;
     cursor: pointer;
     position: static;
     right: 5%;
     color: rgb(0, 0, 0);
 }
+
 /* 6. Footer fixo */
 footer {
     position: static;
@@ -109,25 +119,106 @@ footer {
     header h1 {
         font-size: 2rem;
     }
+
     main.container {
         padding: 1rem;
     }
 }
-/* Colocar o ícone dentro do input de senha */
-#senha + i,
-#confirmaSenha + i {
-    position: absolute;
-    top: 70%;
-    right: 15px; 
-    transform: translateY(-50%);
-    font-size: 1.2rem;
-    color: #000000;
-    cursor: pointer;
+
+/* --------- Erro e animações (mensagens) --------- */
+.erro-msg {
+    font-size: 14px;
+    /* conforme pedido */
+    line-height: 1.2;
+    min-height: 1.1em;
+    opacity: 0;
+    transition: opacity .25s ease;
 }
-.col-md-6.mb-3 {
+
+/* quando texto for colocado via JS, adicionamos classe que faz fade-in */
+.fade-in-erromsg {
+    opacity: 1 !important;
+}
+
+/* animação suave do campo em erro (piscada leve) */
+.campo-erro {
+    border-color: #dc3545 !important;
+    animation: piscar 0.7s ease-in-out 1;
+    box-shadow: 0 0 0 rgba(220, 53, 69, 0);
+}
+
+@keyframes piscar {
+    0% {
+        box-shadow: 0 0 0 rgba(220, 53, 69, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 8px rgba(220, 53, 69, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+/* Olhinho dentro do input (posicionamento) */
+.position-relative {
     position: relative;
 }
-#senha,
-#confirmaSenha {
-    padding-right: 2.5rem;
+
+.olho-input {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.05rem;
+    color: #000000;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0.95;
+    user-select: none;
+}
+
+/* Ajuste padding dos inputs com olhinho (caso algum não tenha inline style) */
+input[type="password"] {
+    padding-right: 3rem;
+}
+
+/* Botão com gradiente e leve brilho no hover */
+.btn-verde {
+    background: linear-gradient(90deg, #2fbb6a 0%, #28a745 60%);
+    border: none;
+    color: #fff;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.btn-verde:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.18);
+}
+
+/* pequenas melhorias responsivas e legibilidade */
+.erro-msg,
+.form-label {
+    font-size: 14px;
+}
+
+@media (max-width: 576px) {
+    .olho-input {
+        right: 10px;
+        font-size: 1rem;
+    }
+}
+
+/* fade-in geral para mensagens (opcional) */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
