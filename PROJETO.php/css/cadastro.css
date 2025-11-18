@@ -222,3 +222,72 @@ input[type="password"] {
         transform: translateY(0);
     }
 }
+/* --- Overlay escuro --- */
+.alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    z-index: 9999;
+}
+
+.alert-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* --- Caixa do alerta --- */
+.alert-box {
+    background: white;
+    width: 340px;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    transform: scale(0.7);
+    transition: transform 0.4s ease;
+}
+
+/* Ativar animação */
+.alert-overlay.active .alert-box {
+    transform: scale(1);
+}
+
+/* Título */
+.alert-box h2 {
+    margin-bottom: 10px;
+    color: #c0392b;
+    font-size: 22px;
+}
+
+/* Subtítulo */
+.alert-box p {
+    font-size: 15px;
+    color: #444;
+    margin-bottom: 15px;
+}
+
+/* Botão */
+.alert-box button {
+    padding: 10px 25px;
+    background: #c0392b;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.alert-box button:hover {
+    background: #e74c3c;
+}

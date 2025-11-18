@@ -165,4 +165,14 @@ include('inseri.php');
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/cadastro.js"></script>
 </body>
+<?php if (isset($_GET['erro']) && $_GET['erro'] === 'cpf_duplicado'): ?>
+  <div id="alertapersonalizado" class="alert-overlay active">
+    <div class="alert-box">
+      <h2>CPF já cadastrado</h2>
+      <p>Por favor, cadastre um novo CPF</p>
+      <button id="alertbotao">OK</button>
+    </div>
+  </div>
+<?php endif; ?>
+
 </html>
