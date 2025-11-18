@@ -24,8 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hash = password_hash($senha, PASSWORD_DEFAULT);
     
     // 1) Verificar CPF
-    $erro = $_GET ['alertaCpf'] ?? null;
-    $stmt = $conexao->prepare("SELECT 1 FROM usuarios WHERE cpf = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT 1 FROM usuarios WHERE cpf = ? LIMIT 1");
     $stmt->bind_param("s", $Cpf);
     $stmt->execute();
     $stmt->store_result();
@@ -43,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     (cpf, nome, sobrenome, nomeMaterno, sexo, endereco, bairro, estado, cep, cidade, email, senha, telefoneCelular, DataNascimento) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    $stmt = $conexao->prepare($sql);
+    $stmt = $conn->prepare($sql);
     if (!$stmt) {
         // Erro na preparação do statement
         header('Location: erroGeral.php');
@@ -70,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->execute()) {
         $stmt->close();
-        $conexao->close();
+        $conn->close();
         header('Location: login.php');
         exit;
     } else {

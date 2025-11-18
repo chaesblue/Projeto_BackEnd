@@ -1,7 +1,39 @@
 // Executa tudo apenas após o DOM estar completamente carregado
-$(document).ready(function() {
+$(document).ready(function () {
   const $form = $("#formCadastro");
   const $mensagensErro = $("#mensagensErro");
+
+  // ----------------- ALERTA CPF DUPLICADO -----------------
+  const alerta = document.getElementById("alertapersonalizado");
+  const botao = document.getElementById("alertbotao");
+
+  if (alerta && botao) {
+    // Botão OK
+    botao.addEventListener("click", () => {
+      fecharAlerta();
+    });
+
+    // Fechar automático após 3s
+    setTimeout(() => {
+      fecharAlerta();
+    }, 3000);
+  }
+
+  function fecharAlerta() {
+    const alerta = document.getElementById("alertapersonalizado");
+    if (!alerta) return;
+
+    alerta.classList.remove("active");
+
+    // Remove completamente
+    setTimeout(() => {
+      alerta.remove();
+    }, 400);
+
+    // Remove erro da URL
+    window.history.replaceState(null, "", "cadastro.php");
+  }
+  // ---------------------------------------------------------
 
 
   // --------------------------------------------------------------------
@@ -197,9 +229,10 @@ $(document).ready(function() {
       }
       return;
     }
-  
+
     // Se não houver erros, submete o formulário normalmente
     $mensagensErro.addClass("d-none");
     $form.off("submit").submit();
   });
 });
+
