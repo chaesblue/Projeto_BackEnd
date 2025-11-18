@@ -13,10 +13,10 @@ $(document).ready(function () {
       fecharAlerta();
     });
 
-    // Fechar automático após 3s
+    // Fechar automático após 10s
     setTimeout(() => {
       fecharAlerta();
-    }, 3000);
+    }, 10000);
   }
 
   function fecharAlerta() {
